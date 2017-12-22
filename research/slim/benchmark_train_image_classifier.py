@@ -197,6 +197,12 @@ tf.app.flags.DEFINE_integer(
 tf.app.flags.DEFINE_integer('max_number_of_steps', None,
                             'The maximum number of training steps.')
 
+tf.app.flags.DEFINE_integer('warm_up_steps', 10,
+                            'The maximum number of training steps.')
+
+tf.app.flags.DEFINE_integer('benchmark_steps', 100,
+                            'The maximum number of training steps.')
+
 #####################
 # Fine-Tuning Flags #
 #####################

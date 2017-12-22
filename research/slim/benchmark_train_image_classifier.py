@@ -565,24 +565,23 @@ def main(_):
     # Kicks off the training. #
     ###########################
 
-    # warm-up
-    slim.learning.train(
-        train_tensor,
-        logdir=FLAGS.train_dir,
-        master=FLAGS.master,
-        is_chief=(FLAGS.task == 0),
-        init_fn=_get_init_fn(),
-        summary_op=summary_op,
-        summary_writer=None,
-        number_of_steps=FLAGS.warm_up_steps,
-        log_every_n_steps=FLAGS.log_every_n_steps,
-        save_summaries_secs=FLAGS.save_summaries_secs,
-        save_interval_secs=FLAGS.save_interval_secs,
-        sync_optimizer=optimizer if FLAGS.sync_replicas else None)
+    # # warm-up
+    # slim.learning.train(
+    #     train_tensor,
+    #     logdir=FLAGS.train_dir,
+    #     master=FLAGS.master,
+    #     is_chief=(FLAGS.task == 0),
+    #     init_fn=_get_init_fn(),
+    #     summary_op=summary_op,
+    #     summary_writer=None,
+    #     number_of_steps=FLAGS.warm_up_steps,
+    #     log_every_n_steps=FLAGS.log_every_n_steps,
+    #     save_summaries_secs=FLAGS.save_summaries_secs,
+    #     save_interval_secs=FLAGS.save_interval_secs,
+    #     sync_optimizer=optimizer if FLAGS.sync_replicas else None)
 
 
     # benchmark
-
     tstart = time.time()
 
     slim.learning.train(
@@ -600,6 +599,7 @@ def main(_):
         sync_optimizer=optimizer if FLAGS.sync_replicas else None)
 
     dur = time.time()-tstart
+    
     print("benchmark results: /n")
     print("%d steps in %.2f seconds /n" %(FLAGS.benchmark_steps,dur))
     print("%.2f seconds per step (%.2 images per second)" %(dur/FLAGS.benchmark_steps),FLAGS.benchmark_steps*FLAGS.batch_size/dur)

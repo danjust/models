@@ -602,7 +602,7 @@ def main(_):
 
     print("benchmark results: /n")
     print("%d steps in %.2f seconds /n" %(FLAGS.benchmark_steps,dur))
-    print("%.2f seconds per step (%.2 images per second)" %(dur/FLAGS.benchmark_steps,FLAGS.benchmark_steps*FLAGS.batch_size/dur))
+    print("%.2f seconds per step (%.f2 images per second)" %(dur/FLAGS.benchmark_steps,FLAGS.benchmark_steps*FLAGS.batch_size/dur))
 
 
 if __name__ == '__main__':

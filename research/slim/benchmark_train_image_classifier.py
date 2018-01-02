@@ -198,10 +198,10 @@ tf.app.flags.DEFINE_integer('max_number_of_steps', None,
                             'The maximum number of training steps.')
 
 tf.app.flags.DEFINE_integer('warm_up_steps', 10,
-                            'The maximum number of training steps.')
+                            'The maximum number of training steps during warm up.')
 
 tf.app.flags.DEFINE_integer('benchmark_steps', 100,
-                            'The maximum number of training steps.')
+                            'The maximum number of training steps during benchmarking.')
 
 #####################
 # Fine-Tuning Flags #
@@ -600,8 +600,9 @@ def main(_):
 
     dur = time.time()-tstart
 
-    print("benchmark results: /n")
-    print("%d steps in %.2f seconds /n" %(FLAGS.benchmark_steps,dur))
+    print("\n")
+    print("benchmark results: \n")
+    print("%d steps in %.2f seconds" %(FLAGS.benchmark_steps,dur))
     print("%.2f seconds per step (%.2f images per second)" %(dur/FLAGS.benchmark_steps,FLAGS.benchmark_steps*FLAGS.batch_size/dur))
 
 

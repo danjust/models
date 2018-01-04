@@ -586,7 +586,7 @@ def main(_):
 
     slim.learning.train(
         train_tensor,
-        logdir=FLAGS.train_dir,
+        logdir=None,
         master=FLAGS.master,
         is_chief=(FLAGS.task == 0),
         init_fn=_get_init_fn(),
@@ -600,7 +600,7 @@ def main(_):
 
     dur = time.time()-tstart
 
-    print("\n")
+    print("===================================\n")
     print("benchmark results: \n")
     print("%d steps in %.2f seconds" %(FLAGS.benchmark_steps,dur))
     print("%.2f seconds per step (%.2f images per second)" %(dur/FLAGS.benchmark_steps,FLAGS.benchmark_steps*FLAGS.batch_size/dur))

@@ -590,12 +590,8 @@ def main(_):
         master=FLAGS.master,
         is_chief=(FLAGS.task == 0),
         init_fn=_get_init_fn(),
-        summary_op=summary_op,
         summary_writer=None,
         number_of_steps=FLAGS.benchmark_steps,
-        log_every_n_steps=FLAGS.log_every_n_steps,
-        save_summaries_secs=FLAGS.save_summaries_secs,
-        save_interval_secs=FLAGS.save_interval_secs,
         sync_optimizer=optimizer if FLAGS.sync_replicas else None)
 
     dur = time.time()-tstart

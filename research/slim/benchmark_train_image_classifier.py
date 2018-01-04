@@ -582,6 +582,8 @@ def main(_):
 
 
     # benchmark
+    print("===================================\n")
+    print("starting benchmark\n")
     tstart = time.time()
 
     slim.learning.train(
@@ -592,6 +594,7 @@ def main(_):
         init_fn=_get_init_fn(),
         summary_writer=None,
         number_of_steps=FLAGS.benchmark_steps,
+        log_every_n_steps=FLAGS.benchmark_steps,
         sync_optimizer=optimizer if FLAGS.sync_replicas else None)
 
     dur = time.time()-tstart

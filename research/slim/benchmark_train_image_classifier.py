@@ -189,7 +189,7 @@ tf.app.flags.DEFINE_string(
     'as `None`, then the model_name flag is used.')
 
 tf.app.flags.DEFINE_integer(
-    'batch_size', 32, 'The number of samples in each batch.')
+    'batch_size', 64, 'The number of samples in each batch.')
 
 tf.app.flags.DEFINE_integer(
     'train_image_size', None, 'Train image size')
@@ -448,7 +448,7 @@ def main(_):
 
       images, labels = tf.train.batch(
           [image, label],
-          batch_size=FLAGS.batch_size,
+          batch_size=round(FLAGS.batch_size/FLAGS.num_clones),
           num_threads=FLAGS.num_preprocessing_threads,
           capacity=5 * FLAGS.batch_size)
       labels = slim.one_hot_encoding(
@@ -603,6 +603,7 @@ def main(_):
     print("benchmark results: \n")
     print("%d steps in %.2f seconds" %(FLAGS.benchmark_steps,dur))
     print("%.2f seconds per step (%.2f images per second)" %(dur/FLAGS.benchmark_steps,FLAGS.benchmark_steps*FLAGS.batch_size/dur))
+    print("Total loss after %d steps: %.3f", %(FLAGS.benchmark_steps,total_loss))
 
 
 if __name__ == '__main__':

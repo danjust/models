@@ -76,16 +76,55 @@ def main(unused_argv):
     learning_rate = _setup_learning_rate(training_config, model.global_step)
     optimizer = tf.train.AdamOptimizer(learning_rate)
 
-    train_tensor = tf.contrib.slim.learning.create_train_op(
-        total_loss=model.total_loss,
-        optimizer=optimizer,
-        global_step=model.global_step,
-        clip_gradient_norm=training_config.clip_gradient_norm)
+
+    # Update ops use GraphKeys.UPDATE_OPS collection if update_ops is None.
+    update_ops = set(ops.get_collection(ops.GraphKeys.UPDATE_OPS))
+
+    # Make sure update_ops are computed before total_loss.
+    if update_ops:
+      with ops.control_dependencies(update_ops):
+        barrier = control_flow_ops.no_op(name='update_barrier')
+      total_loss = control_flow_ops.with_dependencies([barrier], total_loss)
+
+    variables_to_train = tf_variables.trainable_variables()
+
+    assert variables_to_train
+
+    gate_gradients=tf_optimizer.Optimizer.GATE_OP
+    # Create the gradients. Note that apply_gradients adds the gradient
+    # computation to the current graph.
+    grads = optimizer.compute_gradients(
+        total_loss,
+        variables_to_train,
+        gate_gradients=gate_gradients,
+        aggregation_method=None,
+        colocate_gradients_with_ops=False)
+
+    grads = tf.contrib.slim.learning.clip_gradient_norms(
+        grads,
+        training_config.clip_gradient_norm)
+
+    # Create gradient updates.
+    grad_updates = optimizer.apply_gradients(grads, global_step=global_step)
+
+    with ops.name_scope('train_op'):
+      # Make sure total_loss is valid.
+      if check_numerics:
+        total_loss = array_ops.check_numerics(total_loss,
+                                              'LossTensor is inf or nan')
+
+      # Ensure the train_tensor computes grad_updates.
+      train_op = control_flow_ops.with_dependencies([grad_updates], total_loss)
+
+    # Add the operation used for training to the 'train_op' collection
+    train_ops = ops.get_collection_ref(ops.GraphKeys.TRAIN_OP)
+    if train_op not in train_ops:
+      train_ops.append(train_op)
 
     saver = tf.train.Saver()
 
   tf.contrib.slim.learning.train(
-      train_op=train_tensor,
+      train_op=train_op,
       logdir=FLAGS.train_dir,
       graph=g,
       global_step=model.global_step,

@@ -23,6 +23,7 @@ import tensorflow as tf
 
 from skip_thoughts import configuration
 from skip_thoughts import skip_thoughts_model
+from tensorflow.python.framework import ops
 
 FLAGS = tf.flags.FLAGS
 

@@ -14,13 +14,10 @@
 # ==============================================================================
 
 """A binary to train CIFAR-10 using multiple GPUs with synchronous updates.
-
 Accuracy:
 cifar10_multi_gpu_train.py achieves ~86% accuracy after 100K steps (256
 epochs of data) as judged by cifar10_eval.py.
-
 Speed: With batch_size 128.
-
 System        | Step Time (sec/batch)  |     Accuracy
 --------------------------------------------------------------------
 1 Tesla K20m  | 0.35-0.60              | ~86% at 60K steps  (5 hours)
@@ -28,11 +25,9 @@ System        | Step Time (sec/batch)  |     Accuracy
 2 Tesla K20m  | 0.13-0.20              | ~84% at 30K steps  (2.5 hours)
 3 Tesla K20m  | 0.13-0.18              | ~84% at 30K steps
 4 Tesla K20m  | ~0.10                  | ~84% at 30K steps
-
 Usage:
 Please see the tutorial and website for how to download the CIFAR-10
 data set, compile the program and train the model.
-
 http://tensorflow.org/tutorials/deep_cnn/
 """
 from __future__ import absolute_import
@@ -49,29 +44,25 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import cifar10
 
-parser = cifar10.parser
+FLAGS = tf.app.flags.FLAGS
 
-parser.add_argument('--train_dir', type=str, default='/tmp/cifar10_train',
-                    help='Directory where to write event logs and checkpoint.')
-
-parser.add_argument('--max_steps', type=int, default=1000000,
-                    help='Number of batches to run.')
-
-parser.add_argument('--num_gpus', type=int, default=1,
-                    help='How many GPUs to use.')
-
-parser.add_argument('--log_device_placement', type=bool, default=False,
-                    help='Whether to log device placement.')
+tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
+                           """Directory where to write event logs """
+                           """and checkpoint.""")
+tf.app.flags.DEFINE_integer('max_steps', 1000000,
+                            """Number of batches to run.""")
+tf.app.flags.DEFINE_integer('num_gpus', 1,
+                            """How many GPUs to use.""")
+tf.app.flags.DEFINE_boolean('log_device_placement', False,
+                            """Whether to log device placement.""")
 
 
 def tower_loss(scope, images, labels):
   """Calculate the total loss on a single tower running the CIFAR model.
-
   Args:
     scope: unique prefix string identifying the CIFAR tower, e.g. 'tower_0'
     images: Images. 4D tensor of shape [batch_size, height, width, 3].
     labels: Labels. 1D tensor of shape [batch_size].
-
   Returns:
      Tensor of shape [] containing the total loss for a batch of data
   """
@@ -102,9 +93,7 @@ def tower_loss(scope, images, labels):
 
 def average_gradients(tower_grads):
   """Calculate the average gradient for each shared variable across all towers.
-
   Note that this function provides a synchronization point across all towers.
-
   Args:
     tower_grads: List of lists of (gradient, variable) tuples. The outer list
       is over individual gradients. The inner list is over the gradient
@@ -268,9 +257,12 @@ def train():
 
 
 def main(argv=None):  # pylint: disable=unused-argument
+  cifar10.maybe_download_and_extract()
+  if tf.gfile.Exists(FLAGS.train_dir):
+    tf.gfile.DeleteRecursively(FLAGS.train_dir)
+  tf.gfile.MakeDirs(FLAGS.train_dir)
   train()
 
 
 if __name__ == '__main__':
-  FLAGS = parser.parse_args()
   tf.app.run()

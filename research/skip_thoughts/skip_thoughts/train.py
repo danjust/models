@@ -18,13 +18,16 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-
 import tensorflow as tf
+
 from tensorflow.python.ops import variables as tf_variables
+from tensorflow.python.framework import ops
+from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import control_flow_ops
 
 from skip_thoughts import configuration
 from skip_thoughts import skip_thoughts_model
-from tensorflow.python.framework import ops
+
 
 FLAGS = tf.flags.FLAGS
 
@@ -78,7 +81,7 @@ def main(unused_argv):
     learning_rate = _setup_learning_rate(training_config, model.global_step)
     optimizer = tf.train.AdamOptimizer(learning_rate)
 
-
+    total_loss = model.total_loss
     # Update ops use GraphKeys.UPDATE_OPS collection if update_ops is None.
     update_ops = set(ops.get_collection(ops.GraphKeys.UPDATE_OPS))
 
@@ -107,12 +110,11 @@ def main(unused_argv):
         training_config.clip_gradient_norm)
 
     # Create gradient updates.
-    grad_updates = optimizer.apply_gradients(grads, global_step=global_step)
+    grad_updates = optimizer.apply_gradients(grads, global_step=model.global_step)
 
     with ops.name_scope('train_op'):
       # Make sure total_loss is valid.
-      if check_numerics:
-        total_loss = array_ops.check_numerics(total_loss,
+      total_loss = array_ops.check_numerics(total_loss,
                                               'LossTensor is inf or nan')
 
       # Ensure the train_tensor computes grad_updates.

@@ -43,6 +43,7 @@ py_binary(
     deps = [
         ":configuration",
         ":skip_thoughts_model",
+        ":average_gradients"
     ],
 )
 

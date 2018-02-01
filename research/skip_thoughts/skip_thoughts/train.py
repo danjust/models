@@ -28,6 +28,7 @@ from tensorflow.python.ops import control_flow_ops
 
 from skip_thoughts import configuration
 from skip_thoughts import skip_thoughts_model
+from skip_thoughts import average_gradients
 
 
 FLAGS = tf.flags.FLAGS
@@ -76,42 +77,48 @@ def main(unused_argv):
   tf.logging.info("Building training graph.")
   g = tf.Graph()
   with g.as_default():
-    model = skip_thoughts_model.SkipThoughtsModel(model_config, mode="train")
-    model.build()
+    grads_tower = []
+    for dev_ind in range(2):
+      with tf.device('/gpu:%d' %dev_ind):
+        model = skip_thoughts_model.SkipThoughtsModel(model_config, mode="train")
+        model.build()
 
-    learning_rate = _setup_learning_rate(training_config, model.global_step)
-    optimizer = tf.train.AdamOptimizer(learning_rate)
+        learning_rate = _setup_learning_rate(training_config, model.global_step)
+        optimizer = tf.train.AdamOptimizer(learning_rate)
 
-    total_loss = model.total_loss
-    # Update ops use GraphKeys.UPDATE_OPS collection if update_ops is None.
-    update_ops = set(ops.get_collection(ops.GraphKeys.UPDATE_OPS))
+        total_loss = model.total_loss
+        # Update ops use GraphKeys.UPDATE_OPS collection if update_ops is None.
+        update_ops = set(ops.get_collection(ops.GraphKeys.UPDATE_OPS))
 
-    # Make sure update_ops are computed before total_loss.
-    if update_ops:
-      with ops.control_dependencies(update_ops):
-        barrier = control_flow_ops.no_op(name='update_barrier')
-      total_loss = control_flow_ops.with_dependencies([barrier], total_loss)
+        # Make sure update_ops are computed before total_loss.
+        if update_ops:
+          with ops.control_dependencies(update_ops):
+            barrier = control_flow_ops.no_op(name='update_barrier')
+          total_loss = control_flow_ops.with_dependencies([barrier], total_loss)
 
-    variables_to_train = tf_variables.trainable_variables()
+        variables_to_train = tf_variables.trainable_variables()
 
-    assert variables_to_train
+        assert variables_to_train
 
-    gate_gradients=tf_optimizer.Optimizer.GATE_OP
+        gate_gradients=tf_optimizer.Optimizer.GATE_OP
     # Create the gradients. Note that apply_gradients adds the gradient
     # computation to the current graph.
-    grads = optimizer.compute_gradients(
-        total_loss,
-        variables_to_train,
-        gate_gradients=gate_gradients,
-        aggregation_method=None,
-        colocate_gradients_with_ops=False)
+        grads = optimizer.compute_gradients(
+            total_loss,
+            variables_to_train,
+            gate_gradients=gate_gradients,
+            aggregation_method=None,
+            colocate_gradients_with_ops=False)
 
-    grads = tf.contrib.slim.learning.clip_gradient_norms(
-        grads,
-        training_config.clip_gradient_norm)
+        grads = tf.contrib.slim.learning.clip_gradient_norms(
+            grads,
+            training_config.clip_gradient_norm)
 
+        grads_tower.append(grads)
+
+    avg_grads = average_gradients.average_gradients(grads_tower)
     # Create gradient updates.
-    grad_updates = optimizer.apply_gradients(grads, global_step=model.global_step)
+    grad_updates = optimizer.apply_gradients(avg_grads, global_step=model.global_step)
 
     with ops.name_scope('train_op'):
       # Make sure total_loss is valid.

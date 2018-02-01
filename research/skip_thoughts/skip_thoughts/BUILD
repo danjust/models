@@ -20,6 +20,12 @@ py_library(
     ],
 )
 
+py_library(
+    name = "average_gradients",
+    srcs = ["average_gradients.py"],
+    srcs_version = "PY2AND3",
+)
+
 py_test(
     name = "skip_thoughts_model_test",
     size = "large",
@@ -84,4 +90,3 @@ py_binary(
         "//skip_thoughts:configuration",
     ],
 )
-

@@ -20,6 +20,7 @@ from __future__ import print_function
 
 
 import tensorflow as tf
+from tensorflow.python.ops import variables as tf_variables
 
 from skip_thoughts import configuration
 from skip_thoughts import skip_thoughts_model

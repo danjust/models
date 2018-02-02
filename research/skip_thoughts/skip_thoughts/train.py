@@ -78,7 +78,7 @@ def main(unused_argv):
   g = tf.Graph()
   with g.as_default():
     grads_tower = []
-    for dev_ind in range(2):
+    for dev_ind in range(4):
       with tf.device('/gpu:%d' %dev_ind):
         model = skip_thoughts_model.SkipThoughtsModel(model_config, mode="train")
         model.build()
